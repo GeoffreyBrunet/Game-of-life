@@ -1,13 +1,14 @@
 import pygame
+import random
 from game.constants import (
     BLACK,
     WHITE,
     ROWS,
     COLS,
     CELL_SIZE,
-    WINDOW_WIDTH,
-    WINDOW_HEIGHT,
     STABLE_STRUCTURES,
+    WINDOW_WIDTH,
+    BORDER_COLOR,
 )
 
 
@@ -19,8 +20,10 @@ class Board:
         self.width = self.cols * self.cell_size
         self.height = self.rows * self.cell_size
         self.grid = [[WHITE for _ in range(self.cols)] for _ in range(self.rows)]
-        self.margin_x = (WINDOW_WIDTH - self.width) // 2
-        self.margin_y = (WINDOW_HEIGHT - self.height) // 2
+        button_width = 150
+        total_width = self.width + button_width + 60
+        self.margin_x = (WINDOW_WIDTH - total_width) // 2 + button_width + 30
+        self.margin_y = (800 - self.height) // 2
 
     def draw(self, screen):
         for row in range(self.rows):
@@ -38,7 +41,7 @@ class Board:
                 )
                 pygame.draw.rect(
                     screen,
-                    BLACK,
+                    BORDER_COLOR,
                     (
                         self.margin_x + col * self.cell_size,
                         self.margin_y + row * self.cell_size,
@@ -99,8 +102,6 @@ class Board:
                 if self.grid[row][col] == BLACK:
                     if alive_neighbors == 2 or alive_neighbors == 3:
                         new_grid[row][col] = BLACK
-                    else:
-                        new_grid[row][col] = WHITE
                 else:
                     if alive_neighbors == 3:
                         new_grid[row][col] = BLACK
@@ -109,10 +110,17 @@ class Board:
     def reset_grid(self):
         self.grid = [[WHITE for _ in range(self.cols)] for _ in range(self.rows)]
 
-    def place_structure(self, structure_name, x, y):
-        structure = STABLE_STRUCTURES[structure_name]
-        for dx, dy in structure:
-            row = (y + dy) // self.cell_size
-            col = (x + dx) // self.cell_size
-            if 0 <= row < self.rows and 0 <= col < self.cols:
-                self.grid[row][col] = BLACK
+    def randomize_grid(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.grid[row][col] = BLACK if random.random() > 0.8 else WHITE
+
+    def place_structure(self, structure_name):
+        if structure_name in STABLE_STRUCTURES:
+            structure = STABLE_STRUCTURES[structure_name]
+            for _ in range(3):
+                offset_row = random.randint(0, self.rows - 4)
+                offset_col = random.randint(0, self.cols - 4)
+                for cell in structure:
+                    row, col = cell
+                    self.grid[row + offset_row][col + offset_col] = BLACK
